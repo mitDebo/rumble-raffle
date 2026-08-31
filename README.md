@@ -27,4 +27,4 @@ This is a monorepo. `backend/` holds the ASP.NET Core API (`src/`) and its xUnit
 
 ## Status
 
-Walking skeleton is up and verified locally: a minimal ASP.NET Core backend (`GET /api/hello`) and a Vite/React frontend that calls it and displays the result, each with a placeholder unit and integration test. CI/CD to the droplet (Dockerfiles, GitHub Actions build/test/deploy, nginx routing) is the next piece of work, followed by Phase 1 of the task breakdown (Supabase, EF Core, auth, SignalR).
+Walking skeleton is up and verified locally: a minimal ASP.NET Core backend (`GET /api/hello`) and a Vite/React frontend that calls it and displays the result, each with a placeholder unit and integration test. The full CI/CD pipeline is now in place: Dockerfiles for both apps, a `docker-compose.yml` for the droplet, a path-aware GitHub Actions workflow (test → build/push to GHCR → deploy over SSH), and nginx + a TLS cert configured on the droplet for `raffle.kdubs.tech`. Next: push to `main` and verify the pipeline deploys end-to-end, then move on to Phase 1 of the task breakdown (Supabase, EF Core, auth, SignalR).

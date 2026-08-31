@@ -1,0 +1,18 @@
+services:
+  backend:
+    build: ./backend
+    image: ghcr.io/mitdebo/rumble-raffle-backend:latest
+    container_name: rumble-raffle-backend
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  frontend:
+    build: ./frontend
+    image: ghcr.io/mitdebo/rumble-raffle-frontend:latest
+    container_name: rumble-raffle-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
