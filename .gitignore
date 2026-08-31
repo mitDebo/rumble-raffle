@@ -1,0 +1,16 @@
+# Spec/planning docs — live in this repo for convenience, never checked in
+/spec/
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Env
+.env
+.env.local
