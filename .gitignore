@@ -14,3 +14,7 @@
 # Env
 .env
 .env.local
+
+# .NET build output
+backend/**/bin/
+backend/**/obj/

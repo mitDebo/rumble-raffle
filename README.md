@@ -23,8 +23,8 @@ This is an early-stage project. The README will grow as the app takes shape — 
 
 ## Project layout
 
-This is a monorepo. `backend/` and `frontend/` will hold the two apps as they're scaffolded. Planning and spec documents (requirements, architecture decisions, task breakdowns) live in a local `spec/` folder that's intentionally gitignored and never checked in — it's a working folder, not part of the shipped project.
+This is a monorepo. `backend/` holds the ASP.NET Core API (`src/`) and its xUnit test projects (`tests/`); `frontend/` holds the Vite/React app. Planning and spec documents (requirements, architecture decisions, task breakdowns) live in a local `spec/` folder that's intentionally gitignored and never checked in — it's a working folder, not part of the shipped project.
 
 ## Status
 
-Pre-implementation. Requirements and the initial task breakdown are done; Phase 1 (project scaffolding) hasn't started yet.
+Walking skeleton is up and verified locally: a minimal ASP.NET Core backend (`GET /api/hello`) and a Vite/React frontend that calls it and displays the result, each with a placeholder unit and integration test. CI/CD to the droplet (Dockerfiles, GitHub Actions build/test/deploy, nginx routing) is the next piece of work, followed by Phase 1 of the task breakdown (Supabase, EF Core, auth, SignalR).
