@@ -72,6 +72,9 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Install dotnet-ef
         run: dotnet tool install --global dotnet-ef --version 10.0.11
+      - name: Restore
+        working-directory: backend
+        run: dotnet restore src/RumbleRaffle.Api/RumbleRaffle.Api.csproj
       - name: Build migration bundle
         working-directory: backend
         run: >-
@@ -174,6 +177,10 @@ jobs:
       - if: needs.changes.outputs.backend == 'true'
         name: Install dotnet-ef
         run: dotnet tool install --global dotnet-ef --version 10.0.11
+      - if: needs.changes.outputs.backend == 'true'
+        name: Restore
+        working-directory: backend
+        run: dotnet restore src/RumbleRaffle.Api/RumbleRaffle.Api.csproj
       - if: needs.changes.outputs.backend == 'true'
         name: Apply migrations to production
         working-directory: backend
