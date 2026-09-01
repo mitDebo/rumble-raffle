@@ -155,6 +155,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Runs from the runner directly against Supabase's public connection
+      # (the same one the app itself uses) rather than through the droplet
+      # -- and deliberately uses `dotnet ef database update` here, not a
+      # bundle: that boots RumbleRaffle.Api's real Program.cs, so the
+      # connection string below goes through the app's own
+      # ConnectionStrings.Normalize() (Supabase hands out "postgres://" URIs;
+      # Npgsql needs keyword=value), instead of duplicating that parsing in
+      # workflow shell script. backend-migrate's bundle is fine as a bundle
+      # since it only ever talks to a scratch connection string that's
+      # already keyword=value. This is the actual production migration --
+      # nothing else applies migrations to the real database.
+      - if: needs.changes.outputs.backend == 'true'
+        name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - if: needs.changes.outputs.backend == 'true'
+        name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 10.0.11
+      - if: needs.changes.outputs.backend == 'true'
+        name: Apply migrations to production
+        working-directory: backend
+        env:
+          ConnectionStrings__Default: ${{ secrets.SUPABASE_DB_CONNECTION_STRING }}
+        run: >-
+          dotnet ef database update
+          --project src/RumbleRaffle.Core
+          --startup-project src/RumbleRaffle.Api
       - name: Copy docker-compose.yml to the droplet
         uses: appleboy/scp-action@v0.1.7
         with:

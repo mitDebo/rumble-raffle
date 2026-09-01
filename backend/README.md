@@ -93,5 +93,8 @@ systems both trying to own the same schema.
 
 CI validates every migration bundle against a scratch Postgres before
 anything ships (see `backend-migrate` in `.github/workflows/ci-cd.yml`) —
-that's a pipeline gate, not how production gets migrated; nothing currently
-applies migrations against the real Supabase database automatically.
+that's a pipeline gate against a throwaway database, not production.
+Production itself gets migrated by the `deploy` job's "Apply migrations to
+production" step, which runs `dotnet ef database update` directly against
+Supabase (`secrets.SUPABASE_DB_CONNECTION_STRING`) before the droplet's
+containers get restarted.
