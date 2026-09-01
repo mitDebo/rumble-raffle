@@ -22,6 +22,20 @@
     -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+    <!--
+      Also not used directly by any code here, for a different reason than
+      the two above: the EF Core CLI tools (`dotnet ef migrations
+      add`/`bundle`/`database update`) require the *startup project* itself
+      to reference Design, not just the project the DbContext lives in.
+      Core's own Design reference doesn't satisfy that — PrivateAssets="all"
+      keeps it from flowing downstream, same as the version-floor issue
+      above. Surfaced by backend-migrate's CI job, the first thing to
+      actually run `dotnet ef` against the split project structure.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
