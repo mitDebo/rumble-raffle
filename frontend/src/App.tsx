@@ -1,8 +1,15 @@
+import { cn } from '@/lib/utils'
+
 function App() {
   return (
-    <main>
-      <h1>Rumble Raffle</h1>
-      <p>Coming soon.</p>
+    <main
+      className={cn(
+        'flex min-h-screen flex-col items-center justify-center gap-2',
+        'bg-background text-foreground',
+      )}
+    >
+      <h1 className="text-3xl font-bold">Rumble Raffle</h1>
+      <p className="text-muted-foreground">Coming soon.</p>
     </main>
   )
 }

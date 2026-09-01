@@ -16,6 +16,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases (for shadcn/ui and our own code). No "baseUrl" — it's
+       deprecated as of TypeScript 6.0; "paths" alone resolves relative to
+       this file's own directory. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
