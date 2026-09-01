@@ -43,6 +43,19 @@ testable with zero database dependency, it can split into a separate
 Open `RumbleRaffle.slnx` (all four projects) rather than targeting each
 project path individually.
 
+Both test projects mirror this layout rather than having their own
+structure. A test's folder should match where the thing it tests lives:
+something testing a class under `RumbleRaffle.Core/Database/` goes in a
+`Core/Database/` folder in the test project (i.e. Core's contents get a
+`Core/` wrapper folder in the tests, since Core is its own project); a test
+for something in `RumbleRaffle.Api/Hubs/` just goes in `Hubs/` (no extra
+wrapper, since the test project already belongs to Api — folder maps
+straight to folder). Anything that isn't itself a test — `WebApplicationFactory`
+subclasses, shared fixtures, assertion helpers — goes in `Scaffolding/` (for
+things that stand up the app/environment under test, e.g. the `*ApiFactory`
+classes) or `Util/` (for plain helper code), not alongside the tests
+themselves.
+
 ## Configuration
 
 Copy `.env.example` to `.env` in this directory and fill in real values

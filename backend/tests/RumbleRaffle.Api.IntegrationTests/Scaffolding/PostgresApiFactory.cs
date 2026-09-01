@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Testcontainers.PostgreSql;
 using Xunit;
 
-namespace RumbleRaffle.Api.IntegrationTests;
+namespace RumbleRaffle.Api.IntegrationTests.Scaffolding;
 
 // Spins up a real, throwaway Postgres container for tests that need to
 // prove actual database connectivity (as opposed to HealthEndpointsTests'

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 
-namespace RumbleRaffle.Api.IntegrationTests;
+namespace RumbleRaffle.Api.IntegrationTests.Scaffolding;
 
 // Points at a connection nothing is listening on, so the "ready"-tagged
 // Postgres check fails fast with connection-refused rather than a real

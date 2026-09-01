@@ -13,6 +13,13 @@
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+    <!-- Client half of SignalR, for PingHubTests — lets the test open a
+         real HubConnection against the in-process test server, rather than
+         mocking IHubContext/IClientProxy (which would only prove the
+         broadcast call was made, not that a connected client receives it).
+         The server half needs no package: it's already in the
+         Microsoft.AspNetCore.App shared framework Api targets. -->
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.14.0" />
     <!-- Pinned to match RumbleRaffle.Core's resolved version and avoid an
          MSB3277 conflict — see the comment in RumbleRaffle.Api.csproj. -->

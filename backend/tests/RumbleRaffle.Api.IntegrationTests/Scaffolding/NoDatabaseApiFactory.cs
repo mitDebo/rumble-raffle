@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 
-namespace RumbleRaffle.Api.IntegrationTests;
+namespace RumbleRaffle.Api.IntegrationTests.Scaffolding;
 
 // /health and /startup never resolve a connection string at all (Program.cs
 // only reads it lazily, when the "ready"-tagged check or the DbContext is
