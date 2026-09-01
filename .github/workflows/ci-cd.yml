@@ -41,6 +41,50 @@ jobs:
       - name: Integration tests
         run: dotnet test backend/tests/RumbleRaffle.Api.IntegrationTests/RumbleRaffle.Api.IntegrationTests.csproj
 
+  # Proves migrations actually apply cleanly before anything gets near
+  # production: builds a migration bundle from Core's Migrations/ and runs
+  # it against a scratch Postgres that lives only for this job. This never
+  # touches Supabase and isn't itself how production gets migrated (nothing
+  # currently applies migrations there) -- it's a pipeline gate that fails
+  # loudly on a bad migration instead of finding out at deploy time.
+  backend-migrate:
+    needs: [changes, backend-test]
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rumble_raffle_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 10.0.11
+      - name: Build migration bundle
+        working-directory: backend
+        run: >-
+          dotnet ef migrations bundle
+          --project src/RumbleRaffle.Core
+          --startup-project src/RumbleRaffle.Api
+          --output efbundle
+      - name: Apply migrations to scratch database
+        working-directory: backend
+        run: >-
+          ./efbundle --verbose
+          --connection "Host=localhost;Port=5432;Database=rumble_raffle_ci;Username=postgres;Password=postgres"
+
   frontend-test:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
@@ -102,7 +146,7 @@ jobs:
           tags: ghcr.io/mitdebo/rumble-raffle-frontend:latest
 
   deploy:
-    needs: [changes, backend-test, frontend-test, backend-build-push, frontend-build-push]
+    needs: [changes, backend-test, backend-migrate, frontend-test, backend-build-push, frontend-build-push]
     if: |
       always() &&
       !contains(needs.*.result, 'failure') &&

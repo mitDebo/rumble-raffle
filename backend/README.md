@@ -75,11 +75,23 @@ on this machine) and works out of the box on GitHub Actions' hosted runners.
 ## Migrations
 
 ```bash
-dotnet ef migrations add <Name> --project src/RumbleRaffle.Api
-dotnet ef database update --project src/RumbleRaffle.Api
+dotnet ef migrations add <Name> --project src/RumbleRaffle.Core --startup-project src/RumbleRaffle.Api
+dotnet ef database update --project src/RumbleRaffle.Core --startup-project src/RumbleRaffle.Api
 ```
+
+`--project` points at Core since that's where `RumbleRaffleDbContext` and
+`Migrations/` live; `--startup-project` still points at Api, since that's
+the project that actually wires up configuration and DI (`Program.cs`) for
+the EF Core tooling to resolve against. (These commands used to target just
+`--project src/RumbleRaffle.Api`, from before `RumbleRaffleDbContext` moved
+into Core — update this note if that ever moves again.)
 
 Requires the `dotnet-ef` tool (`dotnet tool install --global dotnet-ef` if
 you don't already have it). EF Core owns the schema exclusively — Supabase's
 own GitHub/CLI migration integration is intentionally not used, to avoid two
 systems both trying to own the same schema.
+
+CI validates every migration bundle against a scratch Postgres before
+anything ships (see `backend-migrate` in `.github/workflows/ci-cd.yml`) —
+that's a pipeline gate, not how production gets migrated; nothing currently
+applies migrations against the real Supabase database automatically.
