@@ -14,8 +14,7 @@ namespace RumbleRaffle.Api.IntegrationTests;
 // real Supabase project, and nothing persists between test runs.
 public sealed class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
-        .WithImage("postgres:17-alpine")
+    private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("rumbleraffle_test")
         .WithUsername("postgres")
         .WithPassword("postgres")

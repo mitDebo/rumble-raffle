@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 using RumbleRaffle.Api;
 
@@ -16,25 +17,35 @@ catch (FileNotFoundException)
 
 var builder = WebApplication.CreateBuilder(args);
 
-var rawConnectionString = builder.Configuration.GetConnectionString("Default")
-    ?? throw new InvalidOperationException(
-        "ConnectionStrings:Default is not configured. Set ConnectionStrings__Default " +
-        "(backend/.env locally, a real environment variable in production).");
-var connectionString = NormalizePostgresConnectionString(rawConnectionString);
-
-builder.Services.AddDbContext<RumbleRaffleDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// Resolved lazily (via IServiceProvider) rather than read eagerly from
+// builder.Configuration here, because WebApplicationFactory<Program> only
+// splices its test-configured ConnectionStrings:Default in when
+// builder.Build() runs — code that reads builder.Configuration before that
+// point never sees it. Resolving inside these factories defers the read
+// until something actually asks for a DbContext or runs the "ready" health
+// check, by which point the host (and any test override) is fully built.
+builder.Services.AddDbContext<RumbleRaffleDbContext>((sp, options) =>
+    options.UseNpgsql(ResolveConnectionString(sp.GetRequiredService<IConfiguration>())));
 
 builder.Services.AddHealthChecks()
-    .AddNpgSql(connectionString, name: "postgres", tags: new[] { "ready" });
+    .AddNpgSql(
+        sp => ResolveConnectionString(sp.GetRequiredService<IConfiguration>()),
+        name: "postgres",
+        tags: new[] { "ready" });
 
 var app = builder.Build();
 
-// Liveness: is the process itself responsive? Deliberately has no checks —
-// it should never depend on external services like the database, SignalR,
-// or image storage, since restarting this container wouldn't fix an outage
-// in any of those; it would just add a pointless restart on top.
-app.MapHealthChecks("/health");
+// Liveness: is the process itself responsive? Deliberately runs no checks
+// — it should never depend on external services like the database,
+// SignalR, or image storage, since restarting this container wouldn't fix
+// an outage in any of those; it would just add a pointless restart on top.
+// MapHealthChecks with no options runs every registered check by default,
+// so this needs an explicit predicate that matches nothing — leaving it
+// off only looked safe before anything was registered at all.
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false,
+});
 
 // Readiness: can this instance actually serve traffic right now? As each
 // dependency (database, SignalR, image storage) is added elsewhere in the
@@ -53,6 +64,15 @@ app.MapHealthChecks("/startup", new HealthCheckOptions
 });
 
 app.Run();
+
+static string ResolveConnectionString(IConfiguration configuration)
+{
+    var raw = configuration.GetConnectionString("Default")
+        ?? throw new InvalidOperationException(
+            "ConnectionStrings:Default is not configured. Set ConnectionStrings__Default " +
+            "(backend/.env locally, a real environment variable in production).");
+    return NormalizePostgresConnectionString(raw);
+}
 
 // Supabase's dashboard hands out connection strings as a "postgresql://"
 // URI, but Npgsql's connection string parser expects the ADO.NET

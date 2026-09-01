@@ -4,11 +4,13 @@ using Microsoft.Extensions.Configuration;
 
 namespace RumbleRaffle.Api.IntegrationTests;
 
-// Program.cs now requires ConnectionStrings:Default just to start up, even
-// though /health and /startup never touch the database. This factory
-// supplies a placeholder value so HealthEndpointsTests never depends on
-// backend/.env being present locally or a real secret being configured in
-// CI — the value is never actually connected to.
+// /health and /startup never resolve a connection string at all (Program.cs
+// only reads it lazily, when the "ready"-tagged check or the DbContext is
+// actually used, and neither happens for those two endpoints). This
+// placeholder exists as a safety net rather than a strict requirement — if
+// something in this app ever starts resolving the connection string
+// eagerly, HealthEndpointsTests should keep working without needing
+// backend/.env or a CI secret.
 public sealed class NoDatabaseApiFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
