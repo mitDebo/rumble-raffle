@@ -83,6 +83,14 @@ jobs:
         run: dotnet restore src/RumbleRaffle.Api/RumbleRaffle.Api.csproj
       - name: Build migration bundle
         working-directory: backend
+        # Building the bundle still boots Api's host to locate the
+        # DbContext type, which -- lazily, but still during this step --
+        # resolves ConnectionStrings:Default (see ConnectionStrings.Resolve).
+        # The scratch Postgres service is already up by now, so point at it
+        # here too rather than a dummy value; the actual connection used at
+        # runtime is still whatever --connection below supplies.
+        env:
+          ConnectionStrings__Default: "Host=localhost;Port=5432;Database=rumble_raffle_ci;Username=postgres;Password=postgres"
         run: >-
           dotnet ef migrations bundle
           --project src/RumbleRaffle.Core
