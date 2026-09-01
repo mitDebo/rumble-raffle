@@ -21,11 +21,17 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          # A workflow-only change (like the backend-migrate fixes just now)
+          # counts as touching both apps -- otherwise a change to the
+          # pipeline itself never runs through the very jobs it changed,
+          # which is exactly how the last two commits landed unverified.
           filters: |
             backend:
               - 'backend/**'
+              - '.github/workflows/**'
             frontend:
               - 'frontend/**'
+              - '.github/workflows/**'
 
   backend-test:
     needs: changes
