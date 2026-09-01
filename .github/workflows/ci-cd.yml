@@ -119,6 +119,18 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: 'docker-compose.yml'
           target: '/opt/apps/rumble-raffle/'
+      - name: Write production secrets
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cat > /opt/apps/rumble-raffle/.env << 'ENVEOF'
+            DB_CONNECTION_STRING=${{ secrets.SUPABASE_DB_CONNECTION_STRING }}
+            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            ENVEOF
+            chmod 600 /opt/apps/rumble-raffle/.env
       - name: Pull and restart containers
         uses: appleboy/ssh-action@v1.0.3
         with:

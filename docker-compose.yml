@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: ${DB_CONNECTION_STRING}
+      Supabase__Url: ${SUPABASE_URL}
     ports:
       - "127.0.0.1:8080:8080"
 
