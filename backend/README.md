@@ -15,8 +15,19 @@ droplet), but these are built in from the start in case that changes later.
   checks get registered with the `"ready"` tag and fold into `/ready`
   automatically — no changes needed to `Program.cs` when that happens.
 
-No `.sln` file yet — commands below target each project directly. One will be
-added once there's more than a couple of projects to justify it.
+`src/RumbleRaffle.Core` holds everything that touches an external system
+directly: `RumbleRaffleDbContext`, its `Migrations/`, and connection-string
+handling (`ConnectionStrings.Resolve`/`Normalize`). `src/RumbleRaffle.Api`
+is a thin composition root — `Program.cs` wires Core's registrations
+(`AddRumbleRaffleCore()`) into the host and maps endpoints, but doesn't call
+EF Core directly itself. Future auth- and storage-related classes land in
+Core too, alongside domain interfaces like the storage abstraction from
+task 1.9 — if any of that ever needs to be testable with zero database
+dependency, it can split into a separate `RumbleRaffle.Infrastructure`
+project later without disturbing `RumbleRaffle.Api`.
+
+Open `RumbleRaffle.slnx` (all four projects) rather than targeting each
+project path individually.
 
 ## Configuration
 

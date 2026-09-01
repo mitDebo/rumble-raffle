@@ -9,14 +9,23 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <!--
+      Not used directly by any code in this project — RumbleRaffle.Core owns
+      all direct EF Core usage. Pinned here anyway to match Core's resolved
+      version: Core's own Microsoft.EntityFrameworkCore.Design reference is
+      PrivateAssets="all" (correctly, so Design's tooling doesn't flow to
+      consumers), but that also means its higher version floor doesn't flow
+      here either, leaving this project to float down to Npgsql's lower
+      floor without an explicit pin — which built fine but produced an
+      MSB3277 version-conflict warning.
+    -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RumbleRaffle.Core\RumbleRaffle.Core.csproj" />
   </ItemGroup>
 
 </Project>

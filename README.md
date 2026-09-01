@@ -23,7 +23,7 @@ This is an early-stage project. The README will grow as the app takes shape — 
 
 ## Project layout
 
-This is a monorepo. `backend/` holds the ASP.NET Core API (`src/`) and its xUnit test projects (`tests/`); `frontend/` holds the Vite/React app. Planning and spec documents (requirements, architecture decisions, task breakdowns) live in a local `spec/` folder that's intentionally gitignored and never checked in — it's a working folder, not part of the shipped project.
+This is a monorepo. `backend/` holds the ASP.NET Core solution: `RumbleRaffle.Api` (a thin composition root — hosting, endpoint mapping, DI wiring) and `RumbleRaffle.Core` (everything touching an external system — EF Core `DbContext`, migrations, connection handling; future auth/storage classes) under `src/`, plus their xUnit test projects under `tests/`. `frontend/` holds the Vite/React app. Planning and spec documents (requirements, architecture decisions, task breakdowns) live in a local `spec/` folder that's intentionally gitignored and never checked in — it's a working folder, not part of the shipped project.
 
 ## Status
 

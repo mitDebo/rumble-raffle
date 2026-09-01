@@ -12,10 +12,15 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- Pinned to match RumbleRaffle.Core's resolved version and avoid an
+         MSB3277 conflict — see the comment in RumbleRaffle.Api.csproj. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\RumbleRaffle.Api\RumbleRaffle.Api.csproj" />
+    <ProjectReference Include="..\..\src\RumbleRaffle.Core\RumbleRaffle.Core.csproj" />
   </ItemGroup>
 
 </Project>

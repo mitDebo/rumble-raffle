@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace RumbleRaffle.Api;
+namespace RumbleRaffle.Core;
 
 // Intentionally empty for now — task 1.5 only needs to prove EF Core can
 // connect to Postgres and run a migration end-to-end. Real DbSets land with

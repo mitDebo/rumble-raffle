@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RumbleRaffle.Api/RumbleRaffle.Api.csproj" />
+    <Project Path="src/RumbleRaffle.Core/RumbleRaffle.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RumbleRaffle.Api.IntegrationTests/RumbleRaffle.Api.IntegrationTests.csproj" />
+    <Project Path="tests/RumbleRaffle.Api.UnitTests/RumbleRaffle.Api.UnitTests.csproj" />
+  </Folder>
+</Solution>
