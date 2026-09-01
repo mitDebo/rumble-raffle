@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using RumbleRaffle.Core;
+using RumbleRaffle.Core.Database;
 
 // Load backend/.env (one directory up from this project) for local dev.
 // In production the container gets real environment variables from Docker

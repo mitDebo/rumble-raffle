@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using RumbleRaffle.Core;
+using RumbleRaffle.Core.Database;
 
 #nullable disable
 
-namespace RumbleRaffle.Core.Migrations
+namespace RumbleRaffle.Core.Database.Migrations
 {
     [DbContext(typeof(RumbleRaffleDbContext))]
     [Migration("20260901031019_InitialEmpty")]

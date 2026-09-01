@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RumbleRaffle.Core.Database;
 
 namespace RumbleRaffle.Core;
 
@@ -8,10 +9,13 @@ public static class ServiceCollectionExtensions
 {
     // Registers everything Core owns. Api's Program.cs calls this instead
     // of knowing about EF Core or Npgsql directly, keeping the composition
-    // root thin. The connection string is resolved lazily (per DbContext
-    // instance, via the IServiceProvider passed in here) rather than read
-    // eagerly at registration time — see ConnectionStrings.Resolve's
-    // callers in Program.cs for why that matters for tests.
+    // root thin. Right now that's only the database, but this stays the
+    // single entry point Program.cs calls even as auth/storage
+    // registrations land in their own folders later. The connection string
+    // is resolved lazily (per DbContext instance, via the IServiceProvider
+    // passed in here) rather than read eagerly at registration time — see
+    // ConnectionStrings.Resolve's callers in Program.cs for why that
+    // matters for tests.
     public static IServiceCollection AddRumbleRaffleCore(this IServiceCollection services)
     {
         services.AddDbContext<RumbleRaffleDbContext>((sp, options) =>

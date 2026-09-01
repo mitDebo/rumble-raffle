@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace RumbleRaffle.Core.Migrations
+namespace RumbleRaffle.Core.Database.Migrations
 {
     /// <inheritdoc />
     public partial class InitialEmpty : Migration

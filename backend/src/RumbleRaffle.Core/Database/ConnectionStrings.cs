@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace RumbleRaffle.Core;
+namespace RumbleRaffle.Core.Database;
 
 public static class ConnectionStrings
 {
