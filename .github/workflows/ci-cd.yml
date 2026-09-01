@@ -98,6 +98,13 @@ jobs:
           --output efbundle
       - name: Apply migrations to scratch database
         working-directory: backend
+        # Same reason as the build step above: efbundle still constructs
+        # the DbContext through the app's normal DI path (resolving
+        # ConnectionStrings:Default) before --connection overrides it for
+        # the actual run -- so this needs the env var too, not just the
+        # --connection flag.
+        env:
+          ConnectionStrings__Default: "Host=localhost;Port=5432;Database=rumble_raffle_ci;Username=postgres;Password=postgres"
         run: >-
           ./efbundle --verbose
           --connection "Host=localhost;Port=5432;Database=rumble_raffle_ci;Username=postgres;Password=postgres"
