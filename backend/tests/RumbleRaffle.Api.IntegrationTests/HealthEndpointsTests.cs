@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace RumbleRaffle.Api.IntegrationTests;
@@ -26,7 +28,11 @@ public class HealthEndpointsTests : IClassFixture<NoDatabaseApiFactory>
         var response = await client.GetAsync(path);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var body = await response.Content.ReadAsStringAsync();
-        Assert.Equal("Healthy", body);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Healthy", body.GetProperty("status").GetString());
+        // Neither endpoint has anything registered against it yet.
+        Assert.Empty(body.GetProperty("checks").EnumerateArray());
     }
 }

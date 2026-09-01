@@ -15,6 +15,15 @@ droplet), but these are built in from the start in case that changes later.
   checks get registered with the `"ready"` tag and fold into `/ready`
   automatically — no changes needed to `Program.cs` when that happens.
 
+All three respond with JSON naming each registered check, not just the
+aggregate status, e.g. `{"status":"Healthy","checks":[{"name":"postgres","status":"Healthy"}]}`.
+The HTTP status code still reflects the aggregate (200 for Healthy/Degraded,
+503 for Unhealthy — ASP.NET Core's default `ResultStatusCodes`). Deliberately
+doesn't include each check's description/exception text, since that can
+carry details (e.g. connection info in a failed Postgres check) that
+shouldn't be exposed over an unauthenticated endpoint — check server-side
+logs for that.
+
 `src/RumbleRaffle.Core` holds everything that touches an external system
 directly, organized by concern in its own folder: `Database/` currently has
 `RumbleRaffleDbContext`, its `Migrations/`, and connection-string handling
