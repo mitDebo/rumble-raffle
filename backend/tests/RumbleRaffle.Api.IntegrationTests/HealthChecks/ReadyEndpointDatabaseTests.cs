@@ -4,7 +4,7 @@ using System.Text.Json;
 using RumbleRaffle.Api.IntegrationTests.Scaffolding;
 using Xunit;
 
-namespace RumbleRaffle.Api.IntegrationTests;
+namespace RumbleRaffle.Api.IntegrationTests.HealthChecks;
 
 // Proves the Postgres check registered in Program.cs actually reaches a
 // real database, unlike HealthEndpointsTests' /health and /startup cases

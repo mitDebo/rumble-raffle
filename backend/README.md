@@ -11,9 +11,14 @@ droplet), but these are built in from the start in case that changes later.
   services like the database.
 - `/ready` (readiness) and `/startup` filter registered health checks by the
   `"ready"`/`"startup"` tags. `/ready` currently checks that the database is
-  reachable. As SignalR and image storage land later in Phase 1, their
-  checks get registered with the `"ready"` tag and fold into `/ready`
-  automatically — no changes needed to `Program.cs` when that happens.
+  reachable. As image storage lands later in Phase 1, its check gets
+  registered with the `"ready"` tag and folds into `/ready` automatically —
+  no changes needed to `Program.cs` when that happens. SignalR deliberately
+  doesn't get one: it's in-process middleware here (no Redis/Azure SignalR
+  backplane), so there's no external dependency to probe — if the process
+  is up, it's ready. That could change if a backplane gets added later for
+  horizontal scaling; the backplane itself would be what's worth checking,
+  not "SignalR" as a concept.
 
 All three respond with JSON naming each registered check, not just the
 aggregate status, e.g. `{"status":"Healthy","checks":[{"name":"postgres","status":"Healthy"}]}`.
@@ -23,6 +28,13 @@ doesn't include each check's description/exception text, since that can
 carry details (e.g. connection info in a failed Postgres check) that
 shouldn't be exposed over an unauthenticated endpoint — check server-side
 logs for that.
+
+The endpoint mapping and response formatting live in
+`src/RumbleRaffle.Api/HealthChecks/` (`MapRumbleRaffleHealthChecks()`),
+separate from *what* gets checked: registering a new check (`AddHealthChecks().AddNpgSql(...)`
+and whatever SignalR/storage checks join it later) still happens in
+`Program.cs`, since that's a composition-root decision, not an HTTP-layer
+one.
 
 `src/RumbleRaffle.Core` holds everything that touches an external system
 directly, organized by concern in its own folder: `Database/` currently has
@@ -34,11 +46,12 @@ project root as Core's single composition entry point
 (`AddRumbleRaffleCore()`) — `Program.cs` calls it instead of touching EF
 Core directly, and it'll grow to wire up those future folders too without
 Program.cs needing to change. `src/RumbleRaffle.Api` is a thin composition
-root: `Program.cs` wires Core in and maps endpoints; any future MVC
-controllers go in `Controllers/`. If any of Core's contents ever need to be
-testable with zero database dependency, it can split into a separate
-`RumbleRaffle.Infrastructure` project later without disturbing
-`RumbleRaffle.Api`.
+root: `Program.cs` wires Core in, registers what gets health-checked, and
+calls into each concern's own folder to do the rest — `HealthChecks/` maps
+the three endpoints, any future MVC controllers go in `Controllers/`. If
+any of Core's contents ever need to be testable with zero database
+dependency, it can split into a separate `RumbleRaffle.Infrastructure`
+project later without disturbing `RumbleRaffle.Api`.
 
 Open `RumbleRaffle.slnx` (all four projects) rather than targeting each
 project path individually.
