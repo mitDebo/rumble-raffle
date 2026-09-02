@@ -19,8 +19,13 @@ export default defineConfig({
     proxy: {
       // Local dev only — production routes /api to the backend via nginx
       // on the same origin instead. Port must match the backend's
-      // launchSettings.json dev profile.
-      '/api': 'http://localhost:5100',
+      // launchSettings.json dev profile. ws: true is required for SignalR
+      // (1.8) — without it, Vite's proxy only forwards plain HTTP and lets
+      // the WebSocket upgrade request fall through unhandled.
+      '/api': {
+        target: 'http://localhost:5100',
+        ws: true,
+      },
     },
   },
   test: {

@@ -1,4 +1,5 @@
 using RumbleRaffle.Api.HealthChecks;
+using RumbleRaffle.Api.Hubs;
 using RumbleRaffle.Core;
 using RumbleRaffle.Core.Database;
 
@@ -16,6 +17,7 @@ catch (FileNotFoundException)
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRumbleRaffleCore();
+builder.Services.AddSignalR();
 
 // Resolved lazily via IServiceProvider (same as AddRumbleRaffleCore's own
 // DbContext registration) rather than read eagerly here, because
@@ -30,6 +32,12 @@ builder.Services.AddHealthChecks()
 var app = builder.Build();
 
 app.MapRumbleRaffleHealthChecks();
+
+// Routed under /api to match the prefix nginx (production) and Vite's dev
+// proxy (local) both use to route requests here in the first place -- see
+// PingHubTests for the reasoning. Ping is 1.8's connectivity-only hub;
+// real domain hubs will map alongside it here as they're built.
+app.MapHub<PingHub>("/api/hubs/ping");
 
 app.Run();
 

@@ -31,8 +31,14 @@ public class PingHubTests : IClassFixture<NoDatabaseApiFactory>
         // same trick WebApplicationFactory's own CreateClient() uses under
         // the hood, just wired up manually since HubConnectionBuilder
         // doesn't have a CreateClient()-style helper of its own.
+        // Routed under /api because that's the prefix nginx (production) and
+        // Vite's dev proxy (local) both use to decide "this request goes to
+        // the backend" -- confirmed against the actual nginx config, which
+        // forwards the full path unchanged rather than stripping the
+        // prefix. The backend has no inherent notion of "/api"; it only
+        // exists here because the route is mapped that way below.
         await using var connection = new HubConnectionBuilder()
-            .WithUrl(new Uri(_factory.Server.BaseAddress, "hubs/ping"), options =>
+            .WithUrl(new Uri(_factory.Server.BaseAddress, "api/hubs/ping"), options =>
             {
                 options.HttpMessageHandlerFactory = _ => _factory.Server.CreateHandler();
             })
@@ -43,8 +49,6 @@ public class PingHubTests : IClassFixture<NoDatabaseApiFactory>
         // server could broadcast before this client is listening.
         connection.On<string>("Ping", message => pingReceived.TrySetResult(message));
 
-        // Fails right now with a 404 during negotiation -- nothing maps
-        // "hubs/ping" yet. That's the point: this is 1.8's red test.
         await connection.StartAsync();
 
         var hubContext = _factory.Services.GetRequiredService<IHubContext<PingHub>>();
