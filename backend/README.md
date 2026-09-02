@@ -190,3 +190,26 @@ Production itself gets migrated by the `deploy` job's "Apply migrations to
 production" step, which runs `dotnet ef database update` directly against
 Supabase (`secrets.SUPABASE_DB_CONNECTION_STRING`) before the droplet's
 containers get restarted.
+
+**One-time gotcha (already fixed, documented in case it ever recurs):**
+turning on `.UseSnakeCaseNamingConvention()` in 1.6 also affects the columns
+EF Core expects on its own internal `__EFMigrationsHistory` bookkeeping
+table (`MigrationId`/`ProductVersion` → `migration_id`/`product_version` —
+the table's own name is a raw string, unaffected, only its columns are
+mapped properties subject to the convention). A database whose history
+table was already created before that convention existed — as this
+project's real Supabase database was, by 1.5's `InitialEmpty` migration —
+keeps the old-style columns and `dotnet ef database update` fails with
+`column "migration_id" does not exist`. CI never hits this since its
+Testcontainers Postgres is created fresh every run, always with the current
+convention from the start. Fixed with a one-time manual rename against the
+affected database (this isn't part of the EF model/migrations, so there's
+no "add a migration" path for it):
+
+```sql
+ALTER TABLE "__EFMigrationsHistory" RENAME COLUMN "MigrationId" TO migration_id;
+ALTER TABLE "__EFMigrationsHistory" RENAME COLUMN "ProductVersion" TO product_version;
+```
+
+Only relevant again if a database is ever recreated from a backup/snapshot
+that predates this convention.
