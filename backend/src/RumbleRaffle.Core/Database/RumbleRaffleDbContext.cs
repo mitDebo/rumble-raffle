@@ -1,14 +1,24 @@
 using Microsoft.EntityFrameworkCore;
+using RumbleRaffle.Core.Database.Configurations;
+using RumbleRaffle.Core.Entities;
 
 namespace RumbleRaffle.Core.Database;
 
-// Intentionally empty for now — task 1.5 only needs to prove EF Core can
-// connect to Postgres and run a migration end-to-end. Real DbSets land with
-// the entities that need them in later Phase 1/2 tasks.
 public class RumbleRaffleDbContext : DbContext
 {
     public RumbleRaffleDbContext(DbContextOptions<RumbleRaffleDbContext> options)
         : base(options)
     {
+    }
+
+    // "users", not "Users" -- ServiceCollectionExtensions.AddRumbleRaffleCore
+    // configures snake_case table/column naming (via EFCore.NamingConventions)
+    // for every entity from here on, matching Postgres/Supabase's own
+    // convention (auth.users itself uses e.g. created_at, not CreatedAt).
+    public DbSet<User> Users => Set<User>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
     }
 }

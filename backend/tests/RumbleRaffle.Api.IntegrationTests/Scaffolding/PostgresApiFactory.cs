@@ -26,6 +26,15 @@ public sealed class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncL
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                // Placeholder so JwtBearerOptions' lazy Configure<IConfiguration>
+                // callback (ServiceCollectionExtensions.AddRumbleRaffleCore) has
+                // something to read -- UseAuthentication() runs on every request,
+                // even ones that never hit a protected endpoint, and would throw
+                // on a real request otherwise. Never actually fetched: an
+                // anonymous request never reaches JwtBearerHandler's configuration
+                // manager, which only activates once a bearer token needs
+                // validating.
+                ["Supabase:Url"] = "https://fake.supabase.co",
                 ["ConnectionStrings:Default"] = _dbContainer.GetConnectionString(),
             });
         });

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RumbleRaffle.Core.Database;
@@ -11,9 +12,11 @@ using RumbleRaffle.Core.Database;
 namespace RumbleRaffle.Core.Database.Migrations
 {
     [DbContext(typeof(RumbleRaffleDbContext))]
-    partial class RumbleRaffleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902220530_AddUsers")]
+    partial class AddUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

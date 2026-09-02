@@ -1,5 +1,6 @@
 using RumbleRaffle.Api.HealthChecks;
 using RumbleRaffle.Api.Hubs;
+using RumbleRaffle.Api.Users;
 using RumbleRaffle.Core;
 using RumbleRaffle.Core.Database;
 
@@ -31,6 +32,14 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+// Must run before any endpoint mapping below -- UseAuthorization() (and
+// RequireAuthorization() on individual endpoints, like
+// UserEndpoints.MapRumbleRaffleUserEndpoints()) depends on
+// UseAuthentication() having already attempted to populate the request's
+// ClaimsPrincipal from its bearer token.
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapRumbleRaffleHealthChecks();
 
 // Routed under /api to match the prefix nginx (production) and Vite's dev
@@ -38,6 +47,8 @@ app.MapRumbleRaffleHealthChecks();
 // PingHubTests for the reasoning. Ping is 1.8's connectivity-only hub;
 // real domain hubs will map alongside it here as they're built.
 app.MapHub<PingHub>("/api/hubs/ping");
+
+app.MapRumbleRaffleUserEndpoints();
 
 app.Run();
 

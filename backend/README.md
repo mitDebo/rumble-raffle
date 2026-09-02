@@ -41,22 +41,57 @@ one.
 
 `src/RumbleRaffle.Core` holds everything that touches an external system
 directly, organized by concern in its own folder: `Database/` has
-`RumbleRaffleDbContext`, its `Migrations/`, and connection-string handling
-(`ConnectionStrings.Resolve`/`Normalize`); `Storage/` has `IImageStorage`
-(the app-owned abstraction) and `SupabaseImageStorage` (its real
-implementation, talking to Supabase Storage's REST API directly via a typed
-`HttpClient` rather than a third-party SDK); a future `Auth/` folder will
-join them once 1.6 lands. `ServiceCollectionExtensions.cs` stays at the
-project root as Core's single composition entry point
-(`AddRumbleRaffleCore()`) — `Program.cs` calls it instead of touching EF
-Core or `HttpClient` directly, and it'll grow to wire up `Auth/` too without
-Program.cs needing to change. `src/RumbleRaffle.Api` is a thin composition
-root: `Program.cs` wires Core in, registers what gets health-checked, and
-calls into each concern's own folder to do the rest — `HealthChecks/` maps
-the three endpoints, any future MVC controllers go in `Controllers/`. If
-any of Core's contents ever need to be testable with zero database
-dependency, it can split into a separate `RumbleRaffle.Infrastructure`
-project later without disturbing `RumbleRaffle.Api`.
+`RumbleRaffleDbContext`, its `Migrations/`, connection-string handling
+(`ConnectionStrings.Resolve`/`Normalize`), and entity configuration
+(`Database/Configurations/`, one `IEntityTypeConfiguration<T>` per entity,
+kept separate from the entity classes themselves); `Entities/` has the
+plain entity classes (`User`/`UserFlags` as of 1.6); `Storage/` has
+`IImageStorage` (the app-owned abstraction) and `SupabaseImageStorage` (its
+real implementation, talking to Supabase Storage's REST API directly via a
+typed `HttpClient` rather than a third-party SDK); `Auth/` has
+`JwksOnlyConfigurationRetriever` (see "JWT validation" below).
+`ServiceCollectionExtensions.cs` stays at the project root as Core's single
+composition entry point (`AddRumbleRaffleCore()`) — `Program.cs` calls it
+instead of touching EF Core, `HttpClient`, or JWT bearer auth directly.
+`src/RumbleRaffle.Api` is a thin composition root: `Program.cs` wires Core
+in, registers what gets health-checked, calls `UseAuthentication()`/
+`UseAuthorization()`, and maps each concern's own endpoints —
+`HealthChecks/` maps the three health endpoints, `Users/` maps
+`/api/users/me`, any future MVC controllers go in `Controllers/`. If any of
+Core's contents ever need to be testable with zero database dependency, it
+can split into a separate `RumbleRaffle.Infrastructure` project later
+without disturbing `RumbleRaffle.Api`.
+
+Table/column naming is snake_case project-wide (`EFCore.NamingConventions`,
+`.UseSnakeCaseNamingConvention()` in `AddRumbleRaffleCore()`), matching
+Postgres/Supabase's own convention (`auth.users` itself uses e.g.
+`created_at`) rather than defaulting to PascalCase and needing manual
+quoting in hand-written SQL. Added alongside `users` (1.6), the first real
+domain table — nothing before it needed a convention decided.
+
+### JWT validation
+
+Supabase's own `auth.users`/`auth.identities` tables hold sign-in identity;
+this app's `users` table is a 1:1 companion row (same `id`, populated by a
+Postgres trigger — not yet written, see 1.7) holding only what the app
+needs independently (`display_name`, `avatar_url`, `email`, the `flags`
+bitmask). Protected endpoints validate the bearer JWT Supabase issues
+against Supabase's JWKS, rather than trusting any shared secret.
+
+Supabase doesn't yet expose a standard OIDC discovery document
+(`/.well-known/openid-configuration`) — confirmed still in progress, not
+shipped, via Supabase's own team — so the usual `JwtBearerOptions.Authority`
+auto-configuration path doesn't work here. `Auth/JwksOnlyConfigurationRetriever`
+bridges that gap: it fetches the bare JWKS document directly
+(`{Supabase:Url}/auth/v1/.well-known/jwks.json`) and wraps it in the
+`OpenIdConnectConfiguration` shape the JwtBearer handler expects, so
+`ConfigurationManager` still provides its normal caching, periodic refresh,
+and automatic forced refresh if a token's `kid` isn't recognized (relevant
+if Supabase ever rotates its signing keys). Delete this and switch back to
+plain `Authority`-based configuration once Supabase ships real OIDC
+discovery. Validates issuer (`{Supabase:Url}/auth/v1`) and audience
+(`"authenticated"`, Supabase's convention for any signed-in user regardless
+of provider or magic link).
 
 Open `RumbleRaffle.slnx` (all four projects) rather than targeting each
 project path individually.
@@ -117,6 +152,10 @@ against a real, ephemeral Postgres instance spun up via Testcontainers for
 the duration of that test and torn down afterward — never against the real
 Supabase project. Testcontainers needs Docker running locally (already true
 on this machine) and works out of the box on GitHub Actions' hosted runners.
+`MeEndpointTests` (1.6) proves `/api/users/me` rejects an unauthenticated
+request with 401 — the accept path (a real, valid Supabase JWT) isn't
+provable yet and is deferred to 1.7, once a real sign-in flow exists to
+produce one.
 
 ## Migrations
 
