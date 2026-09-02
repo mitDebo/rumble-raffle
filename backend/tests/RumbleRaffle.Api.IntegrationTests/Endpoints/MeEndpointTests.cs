@@ -2,7 +2,7 @@ using System.Net;
 using RumbleRaffle.Api.IntegrationTests.Scaffolding;
 using Xunit;
 
-namespace RumbleRaffle.Api.IntegrationTests.Users;
+namespace RumbleRaffle.Api.IntegrationTests.Endpoints;
 
 public class MeEndpointTests : IClassFixture<NoDatabaseApiFactory>
 {

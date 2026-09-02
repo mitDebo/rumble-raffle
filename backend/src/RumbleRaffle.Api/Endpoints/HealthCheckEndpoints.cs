@@ -2,7 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace RumbleRaffle.Api.HealthChecks;
+namespace RumbleRaffle.Api.Endpoints;
 
 // How the three health checks get exposed over HTTP. What gets checked is
 // a separate concern, decided in Program.cs (AddHealthChecks().AddNpgSql(),

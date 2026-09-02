@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using RumbleRaffle.Core.Database;
 
-namespace RumbleRaffle.Api.Users;
+namespace RumbleRaffle.Api.Endpoints;
 
 public static class UserEndpoints
 {

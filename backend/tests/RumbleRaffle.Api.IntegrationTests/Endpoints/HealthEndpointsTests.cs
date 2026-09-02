@@ -4,7 +4,7 @@ using System.Text.Json;
 using RumbleRaffle.Api.IntegrationTests.Scaffolding;
 using Xunit;
 
-namespace RumbleRaffle.Api.IntegrationTests.HealthChecks;
+namespace RumbleRaffle.Api.IntegrationTests.Endpoints;
 
 public class HealthEndpointsTests : IClassFixture<NoDatabaseApiFactory>
 {

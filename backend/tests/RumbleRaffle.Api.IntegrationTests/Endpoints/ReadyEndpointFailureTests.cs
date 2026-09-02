@@ -4,7 +4,7 @@ using System.Text.Json;
 using RumbleRaffle.Api.IntegrationTests.Scaffolding;
 using Xunit;
 
-namespace RumbleRaffle.Api.IntegrationTests.HealthChecks;
+namespace RumbleRaffle.Api.IntegrationTests.Endpoints;
 
 // The failure counterpart to ReadyEndpointDatabaseTests: proves /ready
 // reports 503 and names the failing check when a dependency isn't

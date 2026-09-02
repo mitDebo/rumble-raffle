@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 
-namespace RumbleRaffle.Api.Hubs;
+namespace RumbleRaffle.Api.Endpoints;
 
 // Minimal, deliberately generic hub proving the SignalR round trip works at
 // all (1.8) -- a client connects, something broadcasts to it, it receives

@@ -33,11 +33,11 @@ shouldn't be exposed over an unauthenticated endpoint — check server-side
 logs for that.
 
 The endpoint mapping and response formatting live in
-`src/RumbleRaffle.Api/HealthChecks/` (`MapRumbleRaffleHealthChecks()`),
-separate from *what* gets checked: registering a new check (`AddHealthChecks().AddNpgSql(...)`
-and whatever SignalR/storage checks join it later) still happens in
-`Program.cs`, since that's a composition-root decision, not an HTTP-layer
-one.
+`src/RumbleRaffle.Api/Endpoints/` (`HealthCheckEndpoints.cs`,
+`MapRumbleRaffleHealthChecks()`), separate from *what* gets checked:
+registering a new check (`AddHealthChecks().AddNpgSql(...)` and whatever
+SignalR/storage checks join it later) still happens in `Program.cs`, since
+that's a composition-root decision, not an HTTP-layer one.
 
 `src/RumbleRaffle.Core` holds everything that touches an external system
 directly, organized by concern in its own folder: `Database/` has
@@ -55,12 +55,19 @@ composition entry point (`AddRumbleRaffleCore()`) — `Program.cs` calls it
 instead of touching EF Core, `HttpClient`, or JWT bearer auth directly.
 `src/RumbleRaffle.Api` is a thin composition root: `Program.cs` wires Core
 in, registers what gets health-checked, calls `UseAuthentication()`/
-`UseAuthorization()`, and maps each concern's own endpoints —
-`HealthChecks/` maps the three health endpoints, `Users/` maps
-`/api/users/me`, any future MVC controllers go in `Controllers/`. If any of
-Core's contents ever need to be testable with zero database dependency, it
-can split into a separate `RumbleRaffle.Infrastructure` project later
-without disturbing `RumbleRaffle.Api`.
+`UseAuthorization()`, and maps every endpoint. Api is deliberately laid out
+differently than Core: instead of folders per concern, it uses the more
+traditional ASP.NET Core layout, folders per *technical role*. `Endpoints/`
+holds every minimal-API endpoint-mapping class and SignalR hub — one file
+per feature (`HealthCheckEndpoints.cs`, `PingHub.cs`, `UserEndpoints.cs`
+today; a feature never spans multiple files, but the folder they all live
+in is chosen by "what kind of thing is this", not "what feature is this
+about"). `Controllers/` is reserved for real MVC-style controllers
+(`ControllerBase` subclasses) once one is actually needed — still just a
+`.gitkeep` today. If any of Core's contents ever need to be testable with
+zero database dependency, it can split into a separate
+`RumbleRaffle.Infrastructure` project later without disturbing
+`RumbleRaffle.Api`.
 
 Table/column naming is snake_case project-wide (`EFCore.NamingConventions`,
 `.UseSnakeCaseNamingConvention()` in `AddRumbleRaffleCore()`), matching
@@ -101,9 +108,9 @@ structure. A test's folder should match where the thing it tests lives:
 something testing a class under `RumbleRaffle.Core/Database/` goes in a
 `Core/Database/` folder in the test project (i.e. Core's contents get a
 `Core/` wrapper folder in the tests, since Core is its own project); a test
-for something in `RumbleRaffle.Api/Hubs/` just goes in `Hubs/` (no extra
-wrapper, since the test project already belongs to Api — folder maps
-straight to folder). Anything that isn't itself a test — `WebApplicationFactory`
+for something in `RumbleRaffle.Api/Endpoints/` just goes in `Endpoints/`
+(no extra wrapper, since the test project already belongs to Api — folder
+maps straight to folder). Anything that isn't itself a test — `WebApplicationFactory`
 subclasses, shared fixtures, assertion helpers — goes in `Scaffolding/` (for
 things that stand up the app/environment under test, e.g. the `*ApiFactory`
 classes) or `Util/` (for plain helper code), not alongside the tests

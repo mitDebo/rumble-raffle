@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
-using RumbleRaffle.Api.Hubs;
+using RumbleRaffle.Api.Endpoints;
 using RumbleRaffle.Api.IntegrationTests.Scaffolding;
 using Xunit;
 
-namespace RumbleRaffle.Api.IntegrationTests.Hubs;
+namespace RumbleRaffle.Api.IntegrationTests.Endpoints;
 
 // Proves the SignalR round trip actually works end to end: a real client
 // connects to the real hub over the test server's in-process transport,

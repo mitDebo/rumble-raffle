@@ -1,6 +1,4 @@
-using RumbleRaffle.Api.HealthChecks;
-using RumbleRaffle.Api.Hubs;
-using RumbleRaffle.Api.Users;
+using RumbleRaffle.Api.Endpoints;
 using RumbleRaffle.Core;
 using RumbleRaffle.Core.Database;
 
