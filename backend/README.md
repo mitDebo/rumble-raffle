@@ -11,14 +11,17 @@ droplet), but these are built in from the start in case that changes later.
   services like the database.
 - `/ready` (readiness) and `/startup` filter registered health checks by the
   `"ready"`/`"startup"` tags. `/ready` currently checks that the database is
-  reachable. As image storage lands later in Phase 1, its check gets
-  registered with the `"ready"` tag and folds into `/ready` automatically —
-  no changes needed to `Program.cs` when that happens. SignalR deliberately
-  doesn't get one: it's in-process middleware here (no Redis/Azure SignalR
-  backplane), so there's no external dependency to probe — if the process
-  is up, it's ready. That could change if a backplane gets added later for
-  horizontal scaling; the backplane itself would be what's worth checking,
-  not "SignalR" as a concept.
+  reachable. Image storage (1.9) deliberately doesn't have a `"ready"` check
+  yet, even though `IImageStorage`/`SupabaseImageStorage` now exist — no
+  real bucket or API key is provisioned until 5.2 actually needs one, and a
+  check that always reports Unhealthy for a dependency nothing uses yet
+  would make `/ready` less accurate, not more. Add one alongside 5.2's work
+  once the key is real. SignalR deliberately never gets one at all: it's
+  in-process middleware here (no Redis/Azure SignalR backplane), so there's
+  no external dependency to probe — if the process is up, it's ready. That
+  could change if a backplane gets added later for horizontal scaling; the
+  backplane itself would be what's worth checking, not "SignalR" as a
+  concept.
 
 All three respond with JSON naming each registered check, not just the
 aggregate status, e.g. `{"status":"Healthy","checks":[{"name":"postgres","status":"Healthy"}]}`.
@@ -37,14 +40,16 @@ and whatever SignalR/storage checks join it later) still happens in
 one.
 
 `src/RumbleRaffle.Core` holds everything that touches an external system
-directly, organized by concern in its own folder: `Database/` currently has
+directly, organized by concern in its own folder: `Database/` has
 `RumbleRaffleDbContext`, its `Migrations/`, and connection-string handling
-(`ConnectionStrings.Resolve`/`Normalize`); future auth- and storage-related
-classes get their own `Auth/`/`Storage/` folders alongside it rather than
-piling into `Database/`. `ServiceCollectionExtensions.cs` stays at the
+(`ConnectionStrings.Resolve`/`Normalize`); `Storage/` has `IImageStorage`
+(the app-owned abstraction) and `SupabaseImageStorage` (its real
+implementation, talking to Supabase Storage's REST API directly via a typed
+`HttpClient` rather than a third-party SDK); a future `Auth/` folder will
+join them once 1.6 lands. `ServiceCollectionExtensions.cs` stays at the
 project root as Core's single composition entry point
 (`AddRumbleRaffleCore()`) — `Program.cs` calls it instead of touching EF
-Core directly, and it'll grow to wire up those future folders too without
+Core or `HttpClient` directly, and it'll grow to wire up `Auth/` too without
 Program.cs needing to change. `src/RumbleRaffle.Api` is a thin composition
 root: `Program.cs` wires Core in, registers what gets health-checked, and
 calls into each concern's own folder to do the rest — `HealthChecks/` maps
@@ -81,6 +86,10 @@ present in the container.
 Supabase's dashboard hands out) or a standard Npgsql keyword=value string —
 `Program.cs` normalizes the URI form before handing it to Npgsql.
 
+`Supabase__StorageSecretKey` can stay blank locally until 5.2 actually
+needs a real upload to work against — `SupabaseImageStorage` doesn't
+require it to be set at startup, only when a request actually goes out.
+
 ## Run it locally
 
 ```bash
@@ -97,9 +106,11 @@ dotnet test tests/RumbleRaffle.Api.UnitTests
 dotnet test tests/RumbleRaffle.Api.IntegrationTests
 ```
 
-The unit test project is still a placeholder — nothing in the codebase yet
-warrants a real unit test (see NFR-7 in the spec for the reasoning). The
-integration tests are real: `HealthEndpointsTests` proves `/health` and
+The unit test project has its first real test as of 1.9: `ImageStorageTests`
+proves `IImageStorage`'s upload/`GetUrl` contract holds, via
+`FakeImageStorage` rather than a real Supabase Storage call (there's no
+network-reachable dependency to unit test against). The integration tests
+are real: `HealthEndpointsTests` proves `/health` and
 `/startup` respond correctly with nothing registered, and
 `ReadyEndpointDatabaseTests` proves `/ready`'s database check actually works
 against a real, ephemeral Postgres instance spun up via Testcontainers for

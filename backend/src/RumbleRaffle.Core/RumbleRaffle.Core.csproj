@@ -17,6 +17,9 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
+    <!-- AddHttpClient()/IHttpClientFactory for SupabaseImageStorage (1.9),
+         not bundled with Microsoft.NET.Sdk the way it is with Sdk.Web. -->
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
   </ItemGroup>
 
 </Project>
