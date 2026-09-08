@@ -12,13 +12,21 @@ namespace RumbleRaffle.Api.IntegrationTests.Scaffolding;
 // One container is shared across every test in a collection using this
 // fixture and torn down once, after the last test runs — never against the
 // real Supabase project, and nothing persists between test runs.
-public sealed class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+// Not sealed: MigratedPostgresApiFactory builds on this (same container
+// setup, plus running real migrations and stubbing auth.users), rather
+// than duplicating the Testcontainers wiring.
+public class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17-alpine")
         .WithDatabase("rumbleraffle_test")
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
+
+    // Exposed so MigratedPostgresApiFactory (and tests using it) can open
+    // their own raw connection -- needed for auth.users, which isn't part
+    // of our EF model and can't be reached through RumbleRaffleDbContext.
+    public string ConnectionString => _dbContainer.GetConnectionString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -40,7 +48,7 @@ public sealed class PostgresApiFactory : WebApplicationFactory<Program>, IAsyncL
         });
     }
 
-    public Task InitializeAsync() => _dbContainer.StartAsync();
+    public virtual Task InitializeAsync() => _dbContainer.StartAsync();
 
     public new async Task DisposeAsync()
     {
