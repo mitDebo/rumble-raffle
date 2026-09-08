@@ -96,6 +96,24 @@ jobs:
           --project src/RumbleRaffle.Core
           --startup-project src/RumbleRaffle.Api
           --output efbundle
+      - name: Stub Supabase's auth schema
+        # This scratch database is vanilla Postgres, not a real Supabase
+        # project -- it has neither the auth.users table our sync trigger
+        # migration creates a trigger on, nor the anon/authenticated roles
+        # a later migration locks privileges down for (that one guards
+        # itself on whether those roles exist, so it no-ops here; this
+        # table has to actually exist for the trigger migration to attach
+        # to it though). Mirrors MigratedPostgresApiFactory's setup in the
+        # integration tests for the same reason.
+        run: >-
+          PGPASSWORD=postgres psql -h localhost -U postgres -d rumble_raffle_ci -c "
+          CREATE SCHEMA IF NOT EXISTS auth;
+          CREATE TABLE IF NOT EXISTS auth.users (
+              id uuid PRIMARY KEY,
+              email text,
+              raw_user_meta_data jsonb NOT NULL DEFAULT '{}'::jsonb
+          );
+          "
       - name: Apply migrations to scratch database
         working-directory: backend
         # Same reason as the build step above: efbundle still constructs
