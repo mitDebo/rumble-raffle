@@ -3,15 +3,24 @@ name: CI/CD
 on:
   push:
     branches: [main]
+  # Supabase's free tier auto-pauses a project after 7 days with no
+  # database activity -- this app is only actually used once a year (the
+  # watch party itself), so real traffic alone can't be relied on to keep
+  # it awake between events. Runs daily, well under that 7-day window.
+  schedule:
+    - cron: '0 13 * * *'
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  # Figures out which app(s) this push actually touched, so we don't
-  # rebuild/redeploy something that didn't change.
+  # Only relevant to an actual push -- on a schedule-triggered run there's
+  # no diff to filter, and skipping this job cascades to skip every other
+  # push-only job below via their `needs: changes`, leaving only
+  # keep-alive-db (which has no such dependency) to run.
   changes:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
@@ -258,3 +267,16 @@ jobs:
           script: |
             sudo docker compose -f /opt/apps/rumble-raffle/docker-compose.yml pull
             sudo docker compose -f /opt/apps/rumble-raffle/docker-compose.yml up -d
+
+  # Supabase pauses a free-tier project after 7 days of no database
+  # activity, and it would otherwise go quiet for months at a stretch
+  # between Rumble events -- this just needs to prove real activity, not
+  # accomplish anything. Runs only on the schedule trigger above, never on
+  # a push (a push already exercises the database plenty via
+  # backend-migrate/backend-deploy).
+  keep-alive-db:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping production database
+        run: psql "${{ secrets.SUPABASE_DB_CONNECTION_STRING }}" -c "SELECT 1;"
